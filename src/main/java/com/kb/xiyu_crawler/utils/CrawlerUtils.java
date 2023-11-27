@@ -1,7 +1,7 @@
-package com.kb.utils;
+package com.kb.xiyu_crawler.utils;
 
-import com.kb.pojo.Keyword;
-import com.kb.pojo.Product;
+import com.kb.xiyu_crawler.pojo.Keyword;
+import com.kb.xiyu_crawler.pojo.Product;
 
 import java.util.ArrayList;
 import java.util.List;

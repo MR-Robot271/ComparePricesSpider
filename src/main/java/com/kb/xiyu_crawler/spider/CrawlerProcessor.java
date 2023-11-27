@@ -1,8 +1,8 @@
-package com.kb.spider;
+package com.kb.xiyu_crawler.spider;
 
-import com.kb.pojo.Keyword;
-import com.kb.pojo.Product;
-import com.kb.utils.CrawlerUtils;
+import com.kb.xiyu_crawler.pojo.Keyword;
+import com.kb.xiyu_crawler.pojo.Product;
+import com.kb.xiyu_crawler.utils.CrawlerUtils;
 import org.apache.log4j.Logger;
 import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Site;

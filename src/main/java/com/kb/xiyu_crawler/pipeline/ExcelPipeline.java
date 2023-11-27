@@ -1,10 +1,10 @@
-package com.kb.pipeline;
+package com.kb.xiyu_crawler.pipeline;
 
 import com.kb.controller.FileController;
-import com.kb.pojo.Product;
-import com.kb.pojo.ProductExcel;
-import com.kb.pojo.ResultExcel;
-import com.kb.utils.FileUtils;
+import com.kb.xiyu_crawler.pojo.Product;
+import com.kb.xiyu_crawler.pojo.ProductExcel;
+import com.kb.xiyu_crawler.pojo.ResultExcel;
+import com.kb.xiyu_crawler.utils.FileUtils;
 import us.codecraft.webmagic.ResultItems;
 import us.codecraft.webmagic.Task;
 import us.codecraft.webmagic.pipeline.Pipeline;

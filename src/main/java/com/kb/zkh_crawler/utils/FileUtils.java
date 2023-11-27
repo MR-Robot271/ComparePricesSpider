@@ -1,11 +1,14 @@
-package com.kb.utils;
+package com.kb.zkh_crawler.utils;
 
 import com.alibaba.excel.EasyExcel;
-import com.kb.pojo.Keyword;
-import com.kb.pojo.ProductExcel;
-import com.kb.pojo.ResultExcel;
+import com.kb.zkh_crawler.pojo.Keyword;
+import com.kb.zkh_crawler.pojo.ProductExcel;
+import com.kb.zkh_crawler.pojo.ResultExcel;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.File;
@@ -16,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
-* @Description: 文件工具类，用EasyExcel从文件中提取关键字、文件读写等
+* @Description: 文件工具类，从文件中提取关键字、文件读写等
 * @Date: 2023/10/25
 */
 public class FileUtils {
@@ -130,17 +133,7 @@ public class FileUtils {
             Cell parametersCell = sheet.getRow(i).getCell(parametersIndex, Row.MissingCellPolicy.RETURN_NULL_AND_BLANK);
             String parameters1 = null;
             if (parametersCell != null) {
-                // 再判断具体的数据类型 String Numeric Blank等
-                CellType cellType = parametersCell.getCellType();
-                if (cellType == CellType.STRING) {
-                    parameters1 = parametersCell.getStringCellValue();
-                }else if (cellType == CellType.NUMERIC) {
-                    parameters1 = String.valueOf(parametersCell.getNumericCellValue());
-                }else if (cellType == CellType.BLANK) {
-                    parameters1 = "";
-                }else {
-                    parameters1 = "";
-                }
+                parameters1 = parametersCell.getStringCellValue();
             }
 
             // 如果所需数据都没有 就直接进入下一轮循环 防止出现数据全为null的情况
@@ -222,4 +215,14 @@ public class FileUtils {
         }
     }
 
+    public static void main(String[] args) {
+        String filePath = "D:\\feishuDownloads\\1025文件测试.xlsx";
+        List<Keyword> keywords = getKeywords(filePath);
+        if (keywords.size() > 0) {
+            System.out.println(keywords.size());
+            for (Keyword keyword : keywords) {
+                System.out.println(keyword);
+            }
+        }
+    }
 }

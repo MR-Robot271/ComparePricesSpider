@@ -1,9 +1,11 @@
 package com.kb.controller;
 
-import com.kb.pipeline.ExcelPipeline;
-import com.kb.pojo.Keyword;
-import com.kb.spider.CrawlerProcessor;
-import com.kb.utils.FileUtils;
+import com.kb.zkh_crawler.downloader.ZKHDownloader;
+import com.kb.zkh_crawler.processor.ZKHProcessor;
+import com.kb.xiyu_crawler.pipeline.ExcelPipeline;
+import com.kb.xiyu_crawler.pojo.Keyword;
+import com.kb.xiyu_crawler.spider.CrawlerProcessor;
+import com.kb.xiyu_crawler.utils.FileUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -11,6 +13,8 @@ import us.codecraft.webmagic.Spider;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -99,10 +103,21 @@ public class FileController {
         return "下载成功";
     }
 
+    /**
+     * @Description: 西域爬虫
+     * @Param: []
+     * @return: void
+     * @Date: 2023/11/27
+     */
     @GetMapping("/xiyuSpider")
     public void xiyuSpider(){
         String baseUrl="https://www.ehsy.com/search?k=";
-        String searchName="绿联（UGREEN）六类RJ45水晶头镀金 50248 100个装";
+
+        // 添加时间戳，用于区别不同文件 一次爬虫的结果放在一个文件中
+        LocalDateTime localDateTime = LocalDateTime.now();
+        DateTimeFormatter fileTime = DateTimeFormatter.ofPattern("yyMMddHHmm-ss");
+        String time = localDateTime.format(fileTime);
+        path="D:\\GitProjects\\ComparePricesSpider\\download\\ZKHCrawlerResult"+time+".xlsx";
 
         // 获取网页地址
         String keywordPath=fileName;
@@ -129,6 +144,44 @@ public class FileController {
                 .addPipeline(new ExcelPipeline())
                 .thread(1) // 多线程可能会触发反爬虫
                 .run();
+    }
+
+    @GetMapping("/zkhSpider")
+    public void zkhSpider(){
+        String baseUrl="https://www.zkh.com/search.html?keywords=";
+
+        // 添加时间戳，用于区别不同文件 一次爬虫的结果放在一个文件中
+        LocalDateTime localDateTime = LocalDateTime.now();
+        DateTimeFormatter fileTime = DateTimeFormatter.ofPattern("yyMMddHHmmss");
+        String time = localDateTime.format(fileTime);
+        path="D:\\GitProjects\\ComparePricesSpider\\download\\ZKHCrawlerResult"+time+".xlsx";
+
+        // 获取网页地址
+        String keywordPath=fileName;
+        List<com.kb.zkh_crawler.pojo.Keyword> keywords = com.kb.zkh_crawler.utils.FileUtils.getKeywords(keywordPath);
+        List<String> urls = new ArrayList<>();
+        for (com.kb.zkh_crawler.pojo.Keyword keyword:keywords){
+            String noBlankModelParameters=keyword.getModelParameters().replaceAll(" ", "");
+            keyword.setModelParameters(noBlankModelParameters);
+            String noBlankType=keyword.getType().replaceAll(" ", "");
+            keyword.setType(noBlankType);
+            String url=baseUrl+keyword;
+            urls.add(url);
+        }
+        // 需要把List转为String数组 addUrl只能用String数组才能添加多个
+        String[] strings = urls.toArray(new String[0]);
+
+
+        ZKHDownloader zkhDownloader = new ZKHDownloader();
+        Spider spider = Spider.create(new ZKHProcessor())
+                .addUrl(strings)
+                .setDownloader(zkhDownloader)
+                .addPipeline(new com.kb.zkh_crawler.pipeline.ExcelPipeline())
+                // 多线程可能会触发反爬虫
+                .thread(1);
+        spider.run();
+        // 关闭ChromeDriver的浏览器
+        zkhDownloader.closeWebDriver();
     }
 
 }

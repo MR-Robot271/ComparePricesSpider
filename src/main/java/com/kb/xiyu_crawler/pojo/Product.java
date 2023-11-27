@@ -1,4 +1,4 @@
-package com.kb.pojo;
+package com.kb.xiyu_crawler.pojo;
 
 /**
 * @Description: 存放爬取的商品数据，商品的实体类

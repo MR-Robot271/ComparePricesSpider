@@ -1,4 +1,4 @@
-package com.kb.pojo;
+package com.kb.zkh_crawler.pojo;
 
 import com.alibaba.excel.annotation.ExcelProperty;
 

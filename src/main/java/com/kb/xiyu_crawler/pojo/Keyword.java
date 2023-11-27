@@ -1,4 +1,4 @@
-package com.kb.pojo;
+package com.kb.xiyu_crawler.pojo;
 
 import java.util.List;
 
