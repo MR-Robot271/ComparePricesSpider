@@ -1,6 +1,8 @@
 package com.kb.xiyu_crawler.utils;
 
 import com.alibaba.excel.EasyExcel;
+import com.alibaba.excel.ExcelWriter;
+import com.alibaba.excel.write.metadata.WriteSheet;
 import com.kb.xiyu_crawler.pojo.Keyword;
 import com.kb.xiyu_crawler.pojo.ProductExcel;
 import com.kb.xiyu_crawler.pojo.ResultExcel;
@@ -202,23 +204,53 @@ public class FileUtils {
         // 判断文件是否已存在
         if (file.exists()){
             // 如果已存在，按照原有格式，不需要表头，追加写入
-            EasyExcel.write(file, ResultExcel.class)
+//            EasyExcel.write(file, ResultExcel.class)
+//                    .needHead(false)
+//                    .withTemplate(file)
+//                    .file(tempFile)
+//                    .sheet()
+//                    .doWrite(productExcelList);
+
+            ExcelWriter excelWriter = EasyExcel.write(file, ResultExcel.class)
                     .needHead(false)
                     .withTemplate(file)
-                    .file(tempFile)
-                    .sheet()
-                    .doWrite(productExcelList);
+                    .file(tempFile).build();
+            try {
+                WriteSheet writeSheet = EasyExcel.writerSheet().build();
+                excelWriter.write(productExcelList, writeSheet);
+            }finally {
+                // 关闭流
+                if (excelWriter != null) {
+                    excelWriter.finish();
+                }
+            }
+
+            System.out.println("追加写入");
         }
         // 如果不存在，会自动创建文件，第一次写入需要表头
         else{
-            EasyExcel.write(path, ResultExcel.class)
-                    .sheet("爬虫结果")
-                    .doWrite(productExcelList);
+//            EasyExcel.write(path, ResultExcel.class)
+//                    .sheet("爬虫结果")
+//                    .doWrite(productExcelList);
+
+            ExcelWriter excelWriter = EasyExcel.write(path, ResultExcel.class).build();
+            try {
+                WriteSheet writeSheet = EasyExcel.writerSheet("爬虫结果").build();
+                excelWriter.write(productExcelList, writeSheet);
+            }finally {
+                // 关闭流
+                if (excelWriter != null) {
+                    excelWriter.finish();
+                }
+            }
+
+            System.out.println("写入表头");
         }
 
         if (tempFile.exists()){
             file.delete();
             tempFile.renameTo(file);
+            System.out.println("追加写入文件");
         }
     }
 

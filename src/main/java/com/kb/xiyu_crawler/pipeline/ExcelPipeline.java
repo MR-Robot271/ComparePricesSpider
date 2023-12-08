@@ -1,17 +1,18 @@
 package com.kb.xiyu_crawler.pipeline;
 
 import com.kb.controller.FileController;
+import com.kb.websocket.MyHandler;
 import com.kb.xiyu_crawler.pojo.Product;
 import com.kb.xiyu_crawler.pojo.ProductExcel;
 import com.kb.xiyu_crawler.pojo.ResultExcel;
 import com.kb.xiyu_crawler.utils.FileUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import us.codecraft.webmagic.ResultItems;
 import us.codecraft.webmagic.Task;
 import us.codecraft.webmagic.pipeline.Pipeline;
 
 import java.io.File;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -20,7 +21,10 @@ import java.util.List;
 * @Description: 实现写入Excel文件的Pipeline
 * @Date: 2023/10/31
 */
+
 public class ExcelPipeline implements Pipeline {
+//    @Autowired
+//    private MyHandler xiyuHandler;
     @Override
     public void process(ResultItems resultItems, Task task) {
         // 存储爬取结果的list
@@ -31,22 +35,30 @@ public class ExcelPipeline implements Pipeline {
 
         // 存放结果的excel文件地址
         // 添加时间戳，用于区别不同文件 一次爬虫的结果放在一个文件中
-        LocalDateTime localDateTime = LocalDateTime.now();
+//        LocalDateTime localDateTime = LocalDateTime.now();
 
         // 测试用
         //DateTimeFormatter fileTime = DateTimeFormatter.ofPattern("yyMMddHHmm");
         // 正式用
-        DateTimeFormatter fileTime = DateTimeFormatter.ofPattern("yyMMddHH");
-
-        String time = localDateTime.format(fileTime);
+//        DateTimeFormatter fileTime = DateTimeFormatter.ofPattern("yyMMddHH");
+//        String time = localDateTime.format(fileTime);
 //        String path = "D:\\CrawlerResult\\XiYuCrawlerResult"+time+".xlsx";
-        FileController.path="D:\\GitProjects\\ComparePricesSpider\\download\\XiYuCrawlerResult"+time+".xlsx";
-        String path = FileController.path;
+        String path = FileController.xiyuDownloadPath;
 
         // 暂时存放结果的excel文件地址
         String pathOfTemp = "D:\\CrawlerResult\\XiYuCrawlerTemp.xlsx";
 
         writeToExcel(resultItems, productExcelList, path, pathOfTemp);
+
+        // 更新西域进度
+        FileController.xiyuProgress++;
+        System.out.println("总数："+FileController.total+"\n"+"已爬取："+FileController.xiyuProgress);
+        //messagingTemplate.convertAndSend("/topic/process", FileController.xiyuProgress);
+        try {
+            FileController.myHandler.sendDataToClient(FileController.xiyuProgress, FileController.total);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**

@@ -1,0 +1,73 @@
+#xiyu-progress-container {
+    display: flex;
+    align-items: center;
+    margin-top: 25px;
+}
+
+#xiyu-progress {
+    /*将display属性设置为flex，我们可以将progress元素转换为一个弹性容器。
+    通过将flex-direction属性设置为column，我们将元素的方向设置为柱状，
+    这意味着它们将一个接一个地堆叠。*/
+    display: flex;
+    flex-direction: column;
+    width: 300px;
+    height: 25px;
+    background-color: #ffffff;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+#xiyu-progress-bar {
+    width: 0%;
+    height: 100%;
+    background-color: #4caf50;
+    border-radius: 5px;
+}
+
+#xiyu-progress-label {
+    font-size: 10px;
+    color: #535353;
+    width: 20px;
+    text-align: center;
+    justify-content: center;
+    font-weight: bold;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+    background-color: transparent;
+}
+
+#zkh-progress-container {
+    display: flex;
+    align-items: center;
+    margin-top: 25px;
+}
+
+#zkh-progress {
+    /*将display属性设置为flex，我们可以将progress元素转换为一个弹性容器。
+    通过将flex-direction属性设置为column，我们将元素的方向设置为柱状，
+    这意味着它们将一个接一个地堆叠。*/
+    display: flex;
+    flex-direction: column;
+    width: 300px;
+    height: 25px;
+    background-color: #ffffff;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+#zkh-progress-bar {
+    width: 0%;
+    height: 100%;
+    background-color: #4caf50;
+    border-radius: 5px;
+}
+
+#zkh-progress-label {
+    font-size: 10px;
+    color: #535353;
+    width: 20px;
+    text-align: center;
+    justify-content: center;
+    font-weight: bold;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+    background-color: transparent;
+}

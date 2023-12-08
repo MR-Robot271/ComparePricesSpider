@@ -40,7 +40,7 @@
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
 
-<!--        爬虫相关-->
+        <!--        爬虫相关-->
         <dependency>
             <groupId>us.codecraft</groupId>
             <artifactId>webmagic-core</artifactId>
@@ -84,6 +84,17 @@
             <version>3.1.1</version>
         </dependency>
 
+        <!-- Spring WebSocket 用于前后端实时传输数据-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-messaging</artifactId>
+            <version>5.3.13</version>
+        </dependency>
     </dependencies>
 
 </project>

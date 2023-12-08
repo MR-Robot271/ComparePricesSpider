@@ -1,12 +1,17 @@
 package com.kb.controller;
 
+import com.kb.websocket.MyHandler;
+import com.kb.xiyu_crawler.downloader.ProxyDownloader;
 import com.kb.zkh_crawler.downloader.ZKHDownloader;
+import com.kb.zkh_crawler.downloader.ZKHProxyDownloader;
 import com.kb.zkh_crawler.processor.ZKHProcessor;
 import com.kb.xiyu_crawler.pipeline.ExcelPipeline;
 import com.kb.xiyu_crawler.pojo.Keyword;
 import com.kb.xiyu_crawler.spider.CrawlerProcessor;
 import com.kb.xiyu_crawler.utils.FileUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import us.codecraft.webmagic.Spider;
@@ -27,10 +32,29 @@ public class FileController {
     private String downloadFilePath;
 
     // 其他类可以访问，用于记录结果文件的路径
-    public static String path;
+//    public static String path;
+    // 其他类可以访问，用于记录震坤行结果文件的路径
+    public static String zkhDownloadPath;
+
+    // 其他类可以访问，用于记录西域结果文件的路径
+    public static String xiyuDownloadPath;
 
     // 其他类可以访问，用于传递上传文件在服务器的路径
     public static String fileName;
+
+    // 总数
+    public static int total = 0;
+
+    // 西域处理进度
+    public static int xiyuProgress = 0;
+
+    // 震坤行处理进度
+    public static int zkhProgress = 0;
+
+    // 进度条websocket
+    public static MyHandler myHandler=new MyHandler();
+
+
 
     /**
      * @Description: 上传文件的接口
@@ -39,7 +63,7 @@ public class FileController {
      * @Date: 2023/11/9
      */
     @PostMapping("/upload")
-    public String fileUpload(@RequestParam(value = "files",required = true) MultipartFile files[]) {
+    public boolean fileUpload(@RequestParam(value = "files",required = true) MultipartFile files[]) {
         // 遍历接收的文件
         for (int i = 0; i < files.length; i++) {
             // 获取文件名 比较价格
@@ -60,20 +84,60 @@ public class FileController {
                 e.printStackTrace();
             }
         }
-        return "成功";
+        return true;
     }
 
     /**
-     * @Description: 下载文件的接口
+     * @Description: 下载震坤行结果文件的接口
      * @Param: [response]
      * @return: java.lang.String
      * @Date: 2023/11/9
      */
-    @RequestMapping("/download")
-    public String download(HttpServletResponse response){
+    @RequestMapping("/zkhDownload")
+    public String zkhDownload(HttpServletResponse response){
         // 判断文件是否存在
         //String path=uploadFilePath+"/"+fileName;
-        File file = new File(path);
+        File file = new File(zkhDownloadPath);
+        if (!file.exists()){
+            return "文件不存在";
+        }
+        // 用response设置返回文件的格式 以文件流的方式返回
+        response.setContentType("application/octet-stream");
+        // 设置编码方式为utf-8
+        response.setCharacterEncoding("utf-8");
+        // 设置文件流长度
+        response.setContentLength((int) file.length());
+        // 设置返回头 设置下载后的文件名
+        response.setHeader("Content-Disposition","attachment;filename="+file.getName());
+
+
+        // 将文件转化为文件输出流
+        try(BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(file));) {
+            byte[] bytes = new byte[1024];
+            OutputStream os=response.getOutputStream();
+            int i=0;
+            while ((i=bufferedInputStream.read(bytes))!=-1){
+                os.write(bytes,0,i);
+                os.flush();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return "下载失败";
+        }
+        return "下载成功";
+    }
+
+    /**
+     * @Description: 下载西域结果文件的接口
+     * @Param: [response]
+     * @return: java.lang.String
+     * @Date: 2023/11/9
+     */
+    @RequestMapping("/xiyuDownload")
+    public String xiyuDownload(HttpServletResponse response){
+        // 判断文件是否存在
+        //String path=uploadFilePath+"/"+fileName;
+        File file = new File(xiyuDownloadPath);
         if (!file.exists()){
             return "文件不存在";
         }
@@ -117,11 +181,12 @@ public class FileController {
         LocalDateTime localDateTime = LocalDateTime.now();
         DateTimeFormatter fileTime = DateTimeFormatter.ofPattern("yyMMddHHmm-ss");
         String time = localDateTime.format(fileTime);
-        path="D:\\GitProjects\\ComparePricesSpider\\download\\ZKHCrawlerResult"+time+".xlsx";
+        xiyuDownloadPath="D:\\GitProjects\\ComparePricesSpider\\download\\xiyuCrawlerResult"+time+".xlsx";
 
         // 获取网页地址
         String keywordPath=fileName;
         List<Keyword> keywords = FileUtils.getKeywords(keywordPath);
+        total=keywords.size();
         List<String> urls = new ArrayList<>();
         for (Keyword keyword:keywords){
             String noBlankModelParameters=keyword.getModelParameters().replaceAll(" ", "");
@@ -141,11 +206,18 @@ public class FileController {
 
         Spider.create(new CrawlerProcessor())
                 .addUrl(strings)
+                .setDownloader(new ProxyDownloader())
                 .addPipeline(new ExcelPipeline())
                 .thread(1) // 多线程可能会触发反爬虫
                 .run();
     }
 
+    /**
+     * @Description: 震坤行爬虫
+     * @Param: []
+     * @return: void
+     * @Date: 2023/11/9
+     */
     @GetMapping("/zkhSpider")
     public void zkhSpider(){
         String baseUrl="https://www.zkh.com/search.html?keywords=";
@@ -154,7 +226,7 @@ public class FileController {
         LocalDateTime localDateTime = LocalDateTime.now();
         DateTimeFormatter fileTime = DateTimeFormatter.ofPattern("yyMMddHHmmss");
         String time = localDateTime.format(fileTime);
-        path="D:\\GitProjects\\ComparePricesSpider\\download\\ZKHCrawlerResult"+time+".xlsx";
+        zkhDownloadPath="D:\\GitProjects\\ComparePricesSpider\\download\\ZKHCrawlerResult"+time+".xlsx";
 
         // 获取网页地址
         String keywordPath=fileName;
@@ -172,7 +244,8 @@ public class FileController {
         String[] strings = urls.toArray(new String[0]);
 
 
-        ZKHDownloader zkhDownloader = new ZKHDownloader();
+//        ZKHDownloader zkhDownloader = new ZKHDownloader();
+        ZKHProxyDownloader zkhDownloader = new ZKHProxyDownloader();
         Spider spider = Spider.create(new ZKHProcessor())
                 .addUrl(strings)
                 .setDownloader(zkhDownloader)
@@ -181,7 +254,7 @@ public class FileController {
                 .thread(1);
         spider.run();
         // 关闭ChromeDriver的浏览器
-        zkhDownloader.closeWebDriver();
+        //zkhDownloader.closeWebDriver();
     }
 
 }

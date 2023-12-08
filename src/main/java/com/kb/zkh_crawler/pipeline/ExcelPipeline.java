@@ -10,6 +10,7 @@ import us.codecraft.webmagic.Task;
 import us.codecraft.webmagic.pipeline.Pipeline;
 
 import java.io.File;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -30,12 +31,20 @@ public class ExcelPipeline implements Pipeline {
         List<ProductExcel> productExcelList = new ArrayList<>();
 
         // 存放结果的excel文件地址
-        String path = FileController.path;
+        String path = FileController.zkhDownloadPath;
 
         // 暂时存放结果的excel文件地址
         String pathOfTemp = "D:\\CrawlerResult\\ZKHCrawlerTemp.xlsx";
 
         writeToExcel(resultItems, productExcelList, path, pathOfTemp);
+
+        // 更新进度条
+        FileController.zkhProgress++;
+        try {
+            FileController.myHandler.sendDataToClient(FileController.zkhProgress, FileController.total);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -44,7 +53,7 @@ public class ExcelPipeline implements Pipeline {
     * @return: void
     * @Date: 2023/10/31
     */
-    private static void writeToExcel(ResultItems resultItems, List<ProductExcel> productExcelList, String path, String pathOfTemp) {
+    public static void writeToExcel(ResultItems resultItems, List<ProductExcel> productExcelList, String path, String pathOfTemp) {
         List<Product> productList;
 
         // 用于判断文件夹是否存在的临时文件

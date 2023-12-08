@@ -3,14 +3,37 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>文件上传</title>
 </head>
 <body>
-<form method="post" enctype="multipart/form-data" action="/file/upload">
+<form id="uploadForm" method="post" enctype="multipart/form-data" action="/file/upload">
     <!-- name需要和api接口中的入参相同 multiple 表示多个文件-->
     <input type="file" name="files" multiple>
     <input type="submit" style="margin-top:20px" value="点击上传" class="btn btn-primary btn-sm"/>
 </form>
 
+<script>
+    document.getElementById('uploadForm').addEventListener('submit', function(event) {
+        event.preventDefault(); // 阻止表单默认提交行为
+
+        fetch('/file/upload', {
+            method: 'POST',
+            body: new FormData(this)
+        })
+            .then(response => response.json()) // 假设后端返回 JSON 格式数据
+            .then(data => {
+                if (data === true) {
+                    window.location.href = '/spider.html'; // 文件上传成功后跳转到另一个页面
+                } else {
+                    // 文件上传失败处理逻辑
+                    console.error('文件上传失败');
+                }
+            })
+            .catch(error => {
+                // 异常处理逻辑
+                console.error('Error:', error);
+            });
+    });
+</script>
 </body>
 </html>
