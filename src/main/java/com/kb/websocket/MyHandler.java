@@ -28,9 +28,15 @@ public class MyHandler extends TextWebSocketHandler {
         // 这里处理 WebSocket 消息
     }
 
-    // 方法用于向前端发送数据
-    public void sendDataToClient(int crawledNum, int totalNum) throws IOException {
-        String message = "{\"crawledNum\": " + crawledNum + ", \"totalNum\": " + totalNum + "}";
+    // 方法用于向前端发送数据 只有西域的数据
+    public void sendDataToClient(int xiyuCrawledNum, int xiyuTotalNum) throws IOException {
+        String message = "{\"crawledNum\": " + xiyuCrawledNum + ", \"totalNum\": " + xiyuTotalNum + "}";
+        session.sendMessage(new TextMessage(message));
+    }
+
+    // 方法用于向前端发送数据 有西域和震坤行的数据
+    public void sendDataToClient(int xiyuCrawledNum, int xiyuTotalNum, int zkhCrawledNum, int zkhTotalNum) throws IOException {
+        String message = "{\"xiyuCrawledNum\": " + xiyuCrawledNum + ", \"xiyuTotalNum\": " + xiyuTotalNum + ", \"zkhCrawledNum\": " + zkhCrawledNum + ", \"zkhTotalNum\": " + zkhTotalNum+ "}";
         session.sendMessage(new TextMessage(message));
     }
 }

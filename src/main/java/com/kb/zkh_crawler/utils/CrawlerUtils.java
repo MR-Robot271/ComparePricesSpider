@@ -64,6 +64,27 @@ public class CrawlerUtils {
     }
 
     /**
+     * @Description: 快速滑动页面
+     * @Param: [webDriver]
+     * @return: void
+     * @Date: 2023/12/12
+     */
+    public static void slidePageQuickly(WebDriver webDriver){
+        // 创建js执行器
+        JavascriptExecutor js = (JavascriptExecutor) webDriver;
+
+        // 随机向下滑动页面
+        // 定义滚动目标的高度
+        long scrollHeight = (long) js.executeScript("return Math.max(document.body.scrollHeight,document.body.offsetHeight,document.documentElement.clientHeight,document.documentElement.scrollHeight,document.documentElement.offsetHeight)");
+
+        // 缓慢滚动页面
+        js.executeScript("window.scrollTo(0," + scrollHeight + ")");
+        long scrollHeightTmp = scrollHeight;
+        scrollHeight = (long) js.executeScript("return Math.max(document.body.scrollHeight,document.body.offsetHeight,document.documentElement.clientHeight,document.documentElement.scrollHeight,document.documentElement.offsetHeight)");
+        js.executeScript("window.scrollTo("+scrollHeightTmp+"0," + scrollHeight + ")");
+    }
+
+    /**
     * @Description: 用正则表达式进行分词
     * @Param: [regex, words]
     * @return: java.lang.String

@@ -26,13 +26,21 @@ import java.util.List;
 @RestController
 @RequestMapping("file")
 public class FileController {
-    @Value("D:/GitProjects/ComparePricesSpider/upload")
+//    @Value("D:/GitProjects/ComparePricesSpider/upload")
+    @Value("C:/ComparePricesCrawlerCrawlerUploadFile")
     private String uploadFilePath;
     @Value("D:/GitProjects/ComparePricesSpider/download")
     private String downloadFilePath;
 
     // 其他类可以访问，用于记录结果文件的路径
 //    public static String path;
+
+    // 西域爬虫
+    private static Spider spiderOfXiYu=null;
+
+    // 震坤行爬虫
+    private static Spider spiderOfZKH=null;
+
     // 其他类可以访问，用于记录震坤行结果文件的路径
     public static String zkhDownloadPath;
 
@@ -64,6 +72,29 @@ public class FileController {
      */
     @PostMapping("/upload")
     public boolean fileUpload(@RequestParam(value = "files",required = true) MultipartFile files[]) {
+        // 若重新上传文件，需要先停止原来的爬虫
+        if(spiderOfXiYu!=null){
+            spiderOfXiYu.stop();
+
+            spiderOfXiYu.close();
+
+            spiderOfXiYu=null;
+        }
+
+        if(spiderOfZKH!=null){
+            spiderOfZKH.stop();
+//            ZKHProxyDownloader.closeWebDriver();
+            // 给一段时间用于彻底关闭爬虫
+            try {
+                Thread.sleep(3000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            spiderOfZKH.close();
+//            ZKHProxyDownloader.closeWebDriver();
+            spiderOfZKH=null;
+        }
+
         // 遍历接收的文件
         for (int i = 0; i < files.length; i++) {
             // 获取文件名 比较价格
@@ -177,11 +208,24 @@ public class FileController {
     public void xiyuSpider(){
         String baseUrl="https://www.ehsy.com/search?k=";
 
+        // 若爬虫未关闭，则关闭爬虫
+//        if(spiderOfXiYu!=null){
+//            spiderOfXiYu.stop();
+//            ZKHProxyDownloader.closeWebDriver();
+//            spiderOfXiYu.close();
+//            ZKHProxyDownloader.closeWebDriver();
+//            spiderOfXiYu=null;
+//        }
+
+        // 将进度重新置为0
+        xiyuProgress=0;
+
         // 添加时间戳，用于区别不同文件 一次爬虫的结果放在一个文件中
         LocalDateTime localDateTime = LocalDateTime.now();
         DateTimeFormatter fileTime = DateTimeFormatter.ofPattern("yyMMddHHmm-ss");
         String time = localDateTime.format(fileTime);
-        xiyuDownloadPath="D:\\GitProjects\\ComparePricesSpider\\download\\xiyuCrawlerResult"+time+".xlsx";
+//        xiyuDownloadPath="D:\\GitProjects\\ComparePricesSpider\\download\\xiyuCrawlerResult"+time+".xlsx";
+        xiyuDownloadPath="C:\\ComparePricesCrawler\\xiyuResult\\xiyuCrawlerResult"+time+".xlsx";
 
         // 获取网页地址
         String keywordPath=fileName;
@@ -204,12 +248,13 @@ public class FileController {
         }
 
 
-        Spider.create(new CrawlerProcessor())
+        spiderOfXiYu=Spider.create(new CrawlerProcessor())
                 .addUrl(strings)
                 .setDownloader(new ProxyDownloader())
                 .addPipeline(new ExcelPipeline())
-                .thread(1) // 多线程可能会触发反爬虫
-                .run();
+                .thread(1); // 多线程可能会触发反爬虫
+
+        spiderOfXiYu.run();
     }
 
     /**
@@ -222,11 +267,28 @@ public class FileController {
     public void zkhSpider(){
         String baseUrl="https://www.zkh.com/search.html?keywords=";
 
+        // 若爬虫未关闭，则关闭爬虫
+//        if(spiderOfZKH!=null){
+//            spiderOfZKH.stop();
+//            // 给一段时间用于彻底关闭爬虫
+//            try {
+//                Thread.sleep(3000);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//            spiderOfZKH.close();
+//            spiderOfZKH=null;
+//        }
+
+        // 将进度重新置为0
+        zkhProgress=0;
+
         // 添加时间戳，用于区别不同文件 一次爬虫的结果放在一个文件中
         LocalDateTime localDateTime = LocalDateTime.now();
-        DateTimeFormatter fileTime = DateTimeFormatter.ofPattern("yyMMddHHmmss");
+        DateTimeFormatter fileTime = DateTimeFormatter.ofPattern("yyMMddHHmm-ss");
         String time = localDateTime.format(fileTime);
-        zkhDownloadPath="D:\\GitProjects\\ComparePricesSpider\\download\\ZKHCrawlerResult"+time+".xlsx";
+//        zkhDownloadPath="D:\\GitProjects\\ComparePricesSpider\\download\\ZKHCrawlerResult"+time+".xlsx";
+        zkhDownloadPath="C:\\ComparePricesCrawler\\zkhResult\\ZKHCrawlerResult"+time+".xlsx";
 
         // 获取网页地址
         String keywordPath=fileName;
@@ -246,13 +308,20 @@ public class FileController {
 
 //        ZKHDownloader zkhDownloader = new ZKHDownloader();
         ZKHProxyDownloader zkhDownloader = new ZKHProxyDownloader();
-        Spider spider = Spider.create(new ZKHProcessor())
+//        Spider spider = Spider.create(new ZKHProcessor())
+//                .addUrl(strings)
+//                .setDownloader(zkhDownloader)
+//                .addPipeline(new com.kb.zkh_crawler.pipeline.ExcelPipeline())
+//                // 多线程可能会触发反爬虫
+//                .thread(1);
+//        spider.run();
+        spiderOfZKH=Spider.create(new ZKHProcessor())
                 .addUrl(strings)
                 .setDownloader(zkhDownloader)
                 .addPipeline(new com.kb.zkh_crawler.pipeline.ExcelPipeline())
                 // 多线程可能会触发反爬虫
                 .thread(1);
-        spider.run();
+        spiderOfZKH.run();
         // 关闭ChromeDriver的浏览器
         //zkhDownloader.closeWebDriver();
     }

@@ -31,7 +31,7 @@ import java.net.URL;
  * @Date: 2023/11/30
  */
 public class ZKHProxyDownloader extends HttpClientDownloader implements Downloader {
-    private RemoteWebDriver webDriver;
+    private static RemoteWebDriver webDriver;
     private Task task;
 
     @Override
@@ -76,8 +76,14 @@ public class ZKHProxyDownloader extends HttpClientDownloader implements Download
             //webDriver.manage().timeouts().implicitlyWait(10, java.util.concurrent.TimeUnit.SECONDS);
 
             try {
-                // 显示等待页面加载完成,如果页面加载超时,则重新加载,超时时间为10秒
-                WebDriverWait webDriverWait = new WebDriverWait(webDriver, 10);
+                // 判断是否被拦截，进入机器人验证页面
+                String theUrl = webDriver.getCurrentUrl();
+                if (theUrl.contains("robotVerify.html")) {
+                    webDriver.quit();
+                    return download(request, task);
+                }
+                // 显示等待页面加载完成,如果页面加载超时,则重新加载,超时时间为6秒
+                WebDriverWait webDriverWait = new WebDriverWait(webDriver, 6);
                 // 设置判断条件为价格加载完成
                 // 使用 and 方法结合多个条件
                 webDriverWait.until(ExpectedConditions.or(
@@ -87,16 +93,18 @@ public class ZKHProxyDownloader extends HttpClientDownloader implements Download
                         // 条件二：加载成功但是价格需要询价
                         ExpectedConditions.textToBe(By.cssSelector("a > div.goods-price > div.sku-price-wrap-new > span.goods-price-wait"), "企业客户可查看价格")
                 ));
-                // 判断是否被拦截，进入机器人验证页面
-                String theUrl = webDriver.getCurrentUrl();
-                if (theUrl.contains("robotVerify.html")) {
-                    webDriver.quit();
-                    return download(request, task);
-                }
+//                // 判断是否被拦截，进入机器人验证页面
+//                String theUrl = webDriver.getCurrentUrl();
+//                if (theUrl.contains("robotVerify.html")) {
+//                    webDriver.quit();
+//                    return download(request, task);
+//                }
 
-                // 随机向下滑动页面
-                CrawlerUtils.slidePage(webDriver);
+                // 随机向下缓慢滑动页面
+//                CrawlerUtils.slidePage(webDriver);
 
+                // 随机向下快速滑动页面
+                CrawlerUtils.slidePageQuickly(webDriver);
 
                 String pageSource = webDriver.getPageSource();
                 Page page = createPage(theUrl, pageSource);
@@ -155,6 +163,18 @@ public class ZKHProxyDownloader extends HttpClientDownloader implements Download
         page.setRequest(new Request(url));
         page.setDownloadSuccess(true);
         return page;
+    }
+
+    /**
+     * @Description: 可以由外部调用关闭浏览器
+     * @Param: []
+     * @return: void
+     * @Date: 2023/12/12
+     */
+    public static void closeWebDriver() {
+        if (webDriver != null) {
+            webDriver.quit();
+        }
     }
 
     /**

@@ -17,7 +17,7 @@ import java.util.List;
 
 public class ZKHProcessor implements PageProcessor {
     // 随机间隔时间
-    int randomTime=(int)(Math.random()*8000);
+//    int randomTime=(int)(Math.random()*8000);
     private Site site = Site.me()
             // 设置编码
             .setCharset("utf-8")
@@ -26,8 +26,8 @@ public class ZKHProcessor implements PageProcessor {
             // 重试的次数
             .setRetryTimes(3)
             // 间隔时间 稍微长一点可以减小被发现的几率
-            .setSleepTime(randomTime);
-
+//            .setSleepTime(randomTime);
+            .setSleepTime(500);
     @Override
     public void process(Page page) {
         // 存储结果

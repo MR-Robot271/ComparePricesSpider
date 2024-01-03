@@ -46,7 +46,8 @@ public class ExcelPipeline implements Pipeline {
         String path = FileController.xiyuDownloadPath;
 
         // 暂时存放结果的excel文件地址
-        String pathOfTemp = "D:\\CrawlerResult\\XiYuCrawlerTemp.xlsx";
+//        String pathOfTemp = "D:\\CrawlerResult\\XiYuCrawlerTemp.xlsx";
+        String pathOfTemp = "C:\\ComparePricesCrawler\\xiyuResult\\XiYuCrawlerTemp.xlsx";
 
         writeToExcel(resultItems, productExcelList, path, pathOfTemp);
 
@@ -55,7 +56,7 @@ public class ExcelPipeline implements Pipeline {
         System.out.println("总数："+FileController.total+"\n"+"已爬取："+FileController.xiyuProgress);
         //messagingTemplate.convertAndSend("/topic/process", FileController.xiyuProgress);
         try {
-            FileController.myHandler.sendDataToClient(FileController.xiyuProgress, FileController.total);
+            FileController.myHandler.sendDataToClient(FileController.xiyuProgress, FileController.total,FileController.zkhProgress, FileController.total);
         } catch (IOException e) {
             e.printStackTrace();
         }

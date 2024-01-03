@@ -34,14 +34,15 @@ public class ExcelPipeline implements Pipeline {
         String path = FileController.zkhDownloadPath;
 
         // 暂时存放结果的excel文件地址
-        String pathOfTemp = "D:\\CrawlerResult\\ZKHCrawlerTemp.xlsx";
+//        String pathOfTemp = "D:\\CrawlerResult\\ZKHCrawlerTemp.xlsx";
+        String pathOfTemp = "C:\\ComparePricesCrawler\\zkhResult\\ZKHCrawlerTemp.xlsx";
 
         writeToExcel(resultItems, productExcelList, path, pathOfTemp);
 
         // 更新进度条
         FileController.zkhProgress++;
         try {
-            FileController.myHandler.sendDataToClient(FileController.zkhProgress, FileController.total);
+            FileController.myHandler.sendDataToClient(FileController.xiyuProgress,FileController.total,FileController.zkhProgress, FileController.total);
         } catch (IOException e) {
             e.printStackTrace();
         }

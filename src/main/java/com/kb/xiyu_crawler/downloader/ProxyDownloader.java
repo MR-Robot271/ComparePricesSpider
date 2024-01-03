@@ -1,6 +1,7 @@
 package com.kb.xiyu_crawler.downloader;
 
 import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Request;
 import us.codecraft.webmagic.Task;
@@ -61,6 +62,8 @@ public class ProxyDownloader extends HttpClientDownloader {
 //        // 重试写入
 //        CrawlerUtils.retryCrawler(download);
 //    }
+
+    // TODO: 2024/1/3 自动获取IP并更新白名单。否则会报407
 
     /**
      * @Description: 用api获取数据无忧代理的代理IP
@@ -135,6 +138,7 @@ public class ProxyDownloader extends HttpClientDownloader {
             return true;
         } catch (IOException e) {
             //e.printStackTrace();
+            System.out.println("IP代理出错："+e.getMessage());
             return false;
         }
     }

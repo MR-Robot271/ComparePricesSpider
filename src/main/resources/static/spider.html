@@ -3,35 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <title>数据爬取</title>
-    <link rel="stylesheet" type="text/css" href="spiderStyle.css">
+    <link rel="stylesheet" type="text/css" href="css/spiderStyle.css">
+    <style type="text/css">
+        body{
+            background-color: #f5f5f6;
+            height: 100%;
+            margin: 0;
+            position: relative;
+        }
+
+        #spider-container {
+            padding: 20px;
+            /*border: 1px solid #ccc;*/
+            position: absolute;
+            left: 50%;
+            top: 300px;
+            transform: translate(-50%, -50%);
+        }
+    </style>
 </head>
 </head>
 <body>
-<div>
-    <button onclick="xiyuspider()">爬取西域</button>
-    <button onclick="zkhspider()">爬取震坤行</button>
-    <br>
-</div>
-
-<!--西域进度条-->
-<div id="xiyu-progress-container">
+<div id="spider-container">
     <div>
-        西域爬取进度：
+        <button onclick="xiyuspider()" id="xiyu-spider-button">爬取西域</button>
+        <button onclick="zkhspider()" id="zkh-spider-button">爬取震坤行</button>
+        <br>
     </div>
-    <div id="xiyu-progress">
-        <div id="xiyu-progress-bar" style="width: 0%;"></div>
-        <span id="xiyu-progress-label"></span>
-    </div>
-</div>
 
-<!--震坤行进度条-->
-<div id="zkh-progress-container">
-    <div>
-        震坤行爬取进度：
+    <!--西域进度条-->
+    <div id="xiyu-progress-container" style="display: none">
+        <div>
+            西域爬取进度：
+        </div>
+        <div id="xiyu-progress">
+            <div id="xiyu-progress-bar" style="width: 0%;"></div>
+            <span id="xiyu-progress-label"></span>
+        </div>
     </div>
-    <div id="zkh-progress">
-        <div id="zkh-progress-bar" style="width: 0%;"></div>
-        <span id="zkh-progress-label"></span>
+
+    <!--震坤行进度条-->
+    <div id="zkh-progress-container" style="display: none">
+        <div>
+            震坤行爬取进度：
+        </div>
+        <div id="zkh-progress">
+            <div id="zkh-progress-bar" style="width: 0%;"></div>
+            <span id="zkh-progress-label"></span>
+        </div>
+    </div>
+
+    <!--西域结果下载-->
+    <div id="xiyu-download" style="display: none">
+        <button onclick="xiyuResultDownload()">西域结果下载</button>
+    </div>
+
+    <!--震坤行结果下载-->
+    <div id="zkh-download" style="display: none">
+        <button onclick="zkhResultDownload()">震坤行结果下载</button>
     </div>
 </div>
 
@@ -40,24 +69,47 @@
     let socket;
     const progressBar = document.getElementById('xiyu-progress-bar');
     const progressLabel = document.getElementById('xiyu-progress-label');
+    const zkhProgressBar = document.getElementById('zkh-progress-bar');
+    const zkhProgressLabel = document.getElementById('zkh-progress-label');
 
     // 西域 连接 WebSocket 并接收后端数据
     function connectWebSocket() {
-        socket = new WebSocket('ws://localhost:8888/websocket'); // 这里是您后端的 WebSocket 端点路径
+        // socket = new WebSocket('ws://localhost:8888/websocket'); // 这里是您后端的 WebSocket 端点路径
+        socket = new WebSocket('ws://10.0.0.7:8888/websocket'); // 这里是您后端的 WebSocket 端点路径
 
         socket.onmessage = function (event) {
             const data = JSON.parse(event.data);
-            const crawledNum = data.crawledNum;
-            const totalNum = data.totalNum;
+            // 西域的进度数据
+            const xiyuCrawledNum = data.xiyuCrawledNum;
+            const xiyuTotalNum = data.xiyuTotalNum;
+            // 震坤行的进度数据
+            const zkhCrawledNum = data.zkhCrawledNum;
+            const zkhTotalNum = data.zkhTotalNum;
 
+            // 计算并更新西域的进度条
+            const xiyuProgress = (xiyuCrawledNum / xiyuTotalNum) * 100; // 计算进度百分比
             // 计算并更新页面显示的进度条
-            const progress = (crawledNum / totalNum) * 100; // 计算进度百分比
-            // 更新页面中显示进度条的元素
-            // ...
-            progressBar.style.width = `${progress}%`; // 更新进度条宽度
-            progressLabel.textContent = `${progress.toFixed(2)}%`; // 更新百分比标签内容
-            // window.alert(progress);
-            // console.log(progress);
+            const zkhProgress = (zkhCrawledNum / zkhTotalNum) * 100; // 计算进度百分比
+
+            // 更新页面中西域进度条的元素
+            // 更新进度条宽度
+            progressBar.style.width = `${xiyuProgress}%`;
+            // 更新百分比标签内容
+            progressLabel.textContent = `${xiyuProgress.toFixed(2)}%`;
+            // 进度跑完后，显示下载按钮
+            if (xiyuProgress === 100) {
+                document.getElementById('xiyu-download').style.display = '';
+            }
+
+            // 更新页面中震坤行进度条的元素
+            // 更新进度条宽度
+            zkhProgressBar.style.width = `${zkhProgress}%`;
+            // 更新百分比标签内容
+            zkhProgressLabel.textContent = `${zkhProgress.toFixed(2)}%`;
+            // 进度跑完后，显示下载按钮
+            if (zkhProgress === 100) {
+                document.getElementById('zkh-download').style.display = '';
+            }
         };
 
         socket.onerror = function (error) {
@@ -72,6 +124,8 @@
     // 调用西域爬虫接口
     function xiyuspider() {
         connectWebSocket();
+        document.getElementById('xiyu-progress-container').style.display = '';
+        document.getElementById('xiyu-spider-button').style.display = 'none';
         fetch('/file/xiyuSpider', {
             method: 'GET' // 或者其他 HTTP 方法，比如 POST、PUT 等
             // 可以添加 headers、body 等选项
@@ -89,31 +143,12 @@
             });
     }
 
-    // 声明 WebSocket 变量
-    let zkhSocket;
-    const zkhProgressBar = document.getElementById('zkh-progress-bar');
-    const zkhProgressLabel = document.getElementById('zkh-progress-label');
-    function connectZkhWebSocket() {
-        zkhSocket = new WebSocket('ws://localhost:8888/websocket'); // 这里是您后端的 WebSocket 端点路径
-
-        zkhSocket.onmessage = function (event) {
-            const data = JSON.parse(event.data);
-            const crawledNum = data.crawledNum;
-            const totalNum = data.totalNum;
-
-            // 计算并更新页面显示的进度条
-            const progress = (crawledNum / totalNum) * 100; // 计算进度百分比
-            // 更新页面中显示进度条的元素
-            // 更新进度条宽度
-            zkhProgressBar.style.width = `${progress}%`;
-            // 更新百分比标签内容
-            zkhProgressLabel.textContent = `${progress.toFixed(2)}%`;
-        }
-    }
 
     // 调用震坤行爬虫接口
     function zkhspider() {
-        connectZkhWebSocket();
+        connectWebSocket();
+        document.getElementById('zkh-progress-container').style.display = '';
+        document.getElementById('zkh-spider-button').style.display = 'none';
         fetch('/file/zkhSpider', {
             method: 'GET' // 或者其他 HTTP 方法，比如 POST、PUT 等
             // 可以添加 headers、body 等选项
@@ -128,6 +163,30 @@
             .catch(error => {
                 console.error('There was a problem with the fetch operation:', error);
             });
+    }
+
+    // 西域结果下载
+    function xiyuResultDownload() {
+        const link = document.createElement('a');
+        // 后端接口路径
+        link.href = '/file/xiyuDownload';
+        // 在新标签页中打开下载文件
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    // 震坤行结果下载
+    function zkhResultDownload() {
+        const link = document.createElement('a');
+        // 后端接口路径
+        link.href = '/file/zkhDownload';
+        // 在新标签页中打开下载文件
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 
     // 从springboot后端中WebMagic的ExcelPipeline的writeToExcel方法发送数据到前端，数据为：已爬取数量和总数量，类型都为int，前后端数据的传输使用websocket，根据这两个数据在前端实时显示进度条。调用WebMagic爬虫的controller方法是public void xiyuSpider()，请问应该怎么实现，具体的代码是什么
